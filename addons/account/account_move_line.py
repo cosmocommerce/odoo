@@ -190,7 +190,7 @@ class account_move_line(osv.osv):
                 'journal_id': obj_line.journal_id.analytic_journal_id.id,
                 'ref': obj_line.ref,
                 'move_id': obj_line.id,
-                'user_id': uid,
+                'user_id': obj_line.invoice.user_id.id or uid,
                }
 
     def create_analytic_lines(self, cr, uid, ids, context=None):
@@ -589,7 +589,8 @@ class account_move_line(osv.osv):
         res = super(account_move_line, self)._auto_init(cr, context=context)
         cr.execute('SELECT indexname FROM pg_indexes WHERE indexname = \'account_move_line_journal_id_period_id_index\'')
         if not cr.fetchone():
-            cr.execute('CREATE INDEX account_move_line_journal_id_period_id_index ON account_move_line (journal_id, period_id)')
+            cr.execute('CREATE INDEX account_move_line_journal_id_period_id_index '
+                       'ON account_move_line (journal_id, period_id, state, create_uid, id DESC)')
         cr.execute('SELECT indexname FROM pg_indexes WHERE indexname = %s', ('account_move_line_date_id_index',))
         if not cr.fetchone():
             cr.execute('CREATE INDEX account_move_line_date_id_index ON account_move_line (date DESC, id desc)')
